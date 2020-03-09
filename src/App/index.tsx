@@ -5,47 +5,31 @@ import React, {
   useEffect,
   useRef
 } from "react";
-import { v1 as uuid } from "uuid";
+
 import { Todo } from "../type";
 
 //css
 import "./App.css";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  State,
+  createTodoActionCreator,
+  selectedTodoActionCreator
+} from "../redux-og";
 
 type AppProps = {};
 
-const todos: Todo[] = [
-  {
-    id: uuid(),
-    desc: "Learn Redux Toolkit",
-    isComplete: false
-  },
-  {
-    id: uuid(),
-    desc: "Learn Redux",
-    isComplete: false
-  },
-  {
-    id: uuid(),
-    desc: "Learn React",
-    isComplete: true
-  },
-  {
-    id: uuid(),
-    desc: "Learn Reducx Toolkit",
-    isComplete: false
-  }
-];
-
-const selectedTodoId = todos[1].id;
-
 const App: React.FC<AppProps> = () => {
+  const dispatch = useDispatch();
+  const todos = useSelector((state: State) => state.todos);
+  const selectedTodoId = useSelector((state: State) => state.selectedTodoId);
+  const editedCount = useSelector((state: State) => state.counter);
   const [todoInputText, setTodoInputText] = useState("");
   const [editTodoInputText, setEditTodoInputText] = useState("");
-  const [todoCount, setTodoCount] = useState(todos.length);
-  const [selectedTodo, setSelectedTodo] = useState(todos[2]);
   const [isEditMode, setIsEditMode] = useState(false);
   const editRef = useRef<HTMLInputElement>(null);
-
+  const selectedTodo =
+    (selectedTodoId && todos.find(t => t.id === selectedTodoId)) || null;
   const handleTodoInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
     setTodoInputText(text);
@@ -58,13 +42,17 @@ const App: React.FC<AppProps> = () => {
 
   const handleAddTodo = (e: FormEvent) => {
     e.preventDefault();
+    if (todoInputText.trim().length <= 0) return;
+    dispatch(createTodoActionCreator({ desc: todoInputText }));
+    setTodoInputText("");
   };
 
-  const handleSelectTodo = (todo: Todo) => {
-    setSelectedTodo(todo);
+  const handleSelectTodo = (id: string) => () => {
+    dispatch(selectedTodoActionCreator({ id }));
   };
 
   const handleEditTodo = () => {
+    if (!selectedTodo) return;
     setIsEditMode(true);
     setEditTodoInputText(selectedTodo.desc);
   };
@@ -89,7 +77,7 @@ const App: React.FC<AppProps> = () => {
   return (
     <div className="App">
       <div className="App__counter">
-        <div>Todos Updated Count: {todoCount}</div>
+        <div>Todos Updated Count: {editedCount}</div>
       </div>
       <div className="App__header">
         <h1>Todo: Redux vs RTK Edition</h1>
@@ -109,7 +97,7 @@ const App: React.FC<AppProps> = () => {
           {todos.map((todo, index) => (
             <li
               key={todo.id}
-              onClick={e => handleSelectTodo(todo)}
+              onClick={handleSelectTodo(todo.id)}
               className={`${todo.isComplete ? "done" : ""}${
                 todo.id === selectedTodoId ? "active" : ""
               }`}
@@ -120,7 +108,7 @@ const App: React.FC<AppProps> = () => {
         </ul>
         <div className="App__todo-info">
           <h2>Selected Todo:</h2>
-          {selectedTodo === null ? (
+          {selectedTodoId === null || selectedTodo === null ? (
             <span>No Todo Selected</span>
           ) : !isEditMode ? (
             <>

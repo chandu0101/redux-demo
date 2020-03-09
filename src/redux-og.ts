@@ -150,11 +150,11 @@ function counterReducer(state: number = 0, action: TodosActionTypes) {
 
 const rootReducer = combineReducers({
   todos: todosReducer,
-  selectedTodo: selectedTodoReducer,
-  count: counterReducer
+  selectedTodoId: selectedTodoReducer,
+  counter: counterReducer
 });
 
-export type State = typeof rootReducer;
+export type State = ReturnType<typeof rootReducer>;
 export default createStore(
   rootReducer,
   composeWithDevTools(applyMiddleware(thunk, logger))

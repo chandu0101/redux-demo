@@ -55,7 +55,6 @@ const App = function() {
 
   const handleEdit = (): void => {
     if (!selectedTodo) return;
-
     setEditTodoInput(selectedTodo.desc);
     setIsEditMode(true);
   };
